@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<yandex>
+    <profiles>
+        <default>
+            <max_memory_usage>{{ max_memory_usage }}</max_memory_usage>
+            <max_memory_usage_for_user>{{ max_memory_usage_for_user }}</max_memory_usage_for_user>
+        </default>
+    </profiles>
+</yandex>

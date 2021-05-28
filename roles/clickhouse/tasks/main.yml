@@ -1,0 +1,75 @@
+---
+- ping: ~
+
+- name: clickhouse vesrion
+  set_fact:
+    clickhouse_version: '20.12.8.5'
+
+- name: clickhouse log_level
+  set_fact:
+    log_level: trace
+
+
+- name: clickhouse max_memory_usage
+  set_fact:
+    max_memory_usage: '10000000000'
+
+
+- name: clickhouse max_memory_usage_for_user
+  set_fact:
+    max_memory_usage_for_user: '10000000000'
+
+
+- apt_repository:
+    repo: deb https://repo.clickhouse.tech/deb/stable/ main/
+    state: present
+    filename: 'clickhouse.list'
+
+- name: update apt
+  become: true
+  apt:
+    update_cache: yes
+
+- name: htop
+  become: true
+  apt: name=htop
+
+- name: clickhouse
+  become: true
+  apt: 
+    name: '{{ item }}'
+    state: present
+#    state: latest
+#    state: absent
+  with_items:
+    - clickhouse-client={{ clickhouse_version }}
+    - clickhouse-common-static={{ clickhouse_version }}
+    - clickhouse-server={{ clickhouse_version }}
+
+- name: Hold package clickhous
+  dpkg_selections:
+    name: '{{ item }}'
+    selection: hold
+  with_items:
+    - clickhouse-client
+    - clickhouse-common-static
+    - clickhouse-server
+
+- name: manage logger clickhouse
+  become: true
+  template:
+    src: templates/logger.xml
+    dest: "/etc/clickhouse-server/config.d/logger.xml"
+  tags:
+    - clickhouse
+  notify: restart clickhouse
+
+- name: manage max_memory_usage clickhouse
+  become: true
+  template:
+    src: templates/memory.xml
+    dest: "/etc/clickhouse-server/users.d/memory.xml"
+  tags:
+    - clickhouse
+  notify: restart clickhouse
+
